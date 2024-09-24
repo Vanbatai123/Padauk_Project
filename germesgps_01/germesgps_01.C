@@ -66,7 +66,7 @@ void FPPA0 (void)
     (L+H)/H = 7/2
     => PWM = 2/7 = 28.57%
         
-    chast=2000Hz
+    chast=2048Hz
     
     datasheet page 34
     Frequency of Output = Y ÷ [256 × S1 × (S2+1) ]
@@ -81,15 +81,15 @@ void FPPA0 (void)
     => PWM = 39.84%
     
     Y = 8MHz
-    S1 * (S2+1) = 8MHz/2KHz/256 = 15.625
-    S1 = 4
-    S2 = 3
+    S1 * (S2+1) = 8MHz/2048Hz/256 = 15.259
+    S1 = 1
+    S2 = 14
     => chast = 1953.125 Hz
     */
     tm2ct = 0x0;// restart counter
     // tm2b = 73;
     tm2b = 182;//inverse
-    tm2s = 0b0_01_00011; // 8-bit PWM, pre-scalar = 4, scalar = 3
+    tm2s = 0b0_00_01110; // 8-bit PWM, pre-scalar = 4, scalar = 3
     tm2c = 0b0000_10_1_1; // PA3, PWM mode, inverse polarity
 
     /*
@@ -144,10 +144,13 @@ step5:
 // step6:
         // 6. sleep = 1
         sleep = 1;
-step7:
+        goto step7_sleep;
+
+step7_sleep:
         // 7. enter sleep mode
         stopsys;
-// step8:
+        goto exit_sleep;// goto exit sleep after wake up to check sleep value
+step8:
         // 8. Wakeup, read PA6 == 1 more than t6(ms)?
         if (PIN_SPRING_A6 == 1)
         {
@@ -158,7 +161,7 @@ step7:
                 goto step9; // PA6 = 1 less than t6, go to step 9
         }
         else
-            goto step7; // wakeup not by PA6, sleep again
+            goto step7_sleep; // wakeup not by PA6, sleep again
 step9:
         // 9.a PA4 = 1, delay(t1), PA4 = 0
         PIN_A4 = 1;
@@ -169,7 +172,7 @@ step9:
         _delay_ms(t6); // output PWM during t6
         PWM_DISABLE(); // stop pwm
 
-        goto step7;
+        goto step7_sleep;
 
 step10:
         // 10.a PA4 = 1, read A5,A6 during t3, PA4 = 0
@@ -208,19 +211,7 @@ step10:
         if(value_A5 == 1)
         {
             sleep = 2;
-step12:
-            stopsys;
-            // 12. Wakeup, read PA5 == 1 more than 2000(ms)?
-            if (PIN_BALL_A5 == 1)
-            {
-                _delay_ms(2000);
-                if (PIN_BALL_A5 == 1)
-                    goto step5; // PA5 = 1 more than 2000(ms), go to step 5
-                else
-                    goto step12; // PA5 = 1 less than 2000(ms), sleep again
-            }
-            else
-                goto step12; // wakeup not by PA5, sleep again
+            goto step7_sleep;
         }
         else if(value_A6 == 1)
             goto step10; // back to step 10
@@ -267,7 +258,25 @@ step11:
             cnt_step++;// increase times counter
         }
         // PA6 not show 1 after 10 times, jump to step 7
-        goto step7;
+        goto step7_sleep;
+
+step12:
+        // 12. Wakeup, read PA5 == 1 more than 2000(ms)?
+        if (PIN_BALL_A5 == 1)
+        {
+            _delay_ms(2000);
+            if (PIN_BALL_A5 == 1)
+                goto step5; // PA5 = 1 more than 2000(ms), go to step 5
+            else
+                goto step7_sleep; // PA5 = 1 less than 2000(ms), sleep again
+        }
+        else
+            goto step7_sleep; // wakeup not by PA5, sleep again
+        
+exit_sleep:
+        if (sleep == 1) goto step8;
+        else if (sleep == 2) goto step12;
+        else goto step7_sleep;
     }
 }
 
