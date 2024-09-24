@@ -1,0 +1,49 @@
+1. Turn on the power
+2. assign variables
+PWM=40%
+sleep=0
+chast=2000Hz
+chustv=1000ms
+t1=50ms
+t2=100ms
+t3=150ms
+t4=300ms
+t5=500ms
+t6=1000ms
+t7=2000ms
+
+3. assign input/output ports
+PA3 - PWM output - «chast» (initial state 0)
+PA4 - Output -1 – (initial state 0)
+PA5- input - 1 (spring vibration sensor)
+PA6 - input -1 (ball vibration sensor)
+4. read PA6 for 1,
+if «1» appears on PA6 for more than 2000ms, then go to step 5
+if not, continue reading
+
+5. PA4=1 during t6 ,PA3=«chast» filling «PWM» during t6 - one after another (cycle 3 times)
+6. save wake-up byte sleep=1
+7. sleep
+(Actions sleep=1)
+8. read PA5 during t6
+if PA5 > t6 go to point (10.)
+if PA5 < t6 go to point (9.)
+9. after waking up PA4=1 during t1 ,PA3= «chast» filling «PWM» during t6 one after another (cycle 1 time)
+go to point (6.)
+10. (PA4=1, read PA5 and PA6 during t3) ,PA3=1 -«chast» filling «PWM»; read PA6 during t3, - one after another (cycle 1 time)
+If PA5 =1 go to point (10.)
+If PA5 =0 go to point (11.)
+If PA6 = 1 - save sleep=2, fall asleep
+11. (PA4=1, read PA5 during t4, PA4=0, read PA5 during t7) - one after another
+If PA5 =1 go to point (10.)
+cycle 10 times
+If PA5 =0 go to point (6.)
+(Actions sleep=2)
+12. read PA6 for 1,
+if PA6 "1" appears more than 2000ms then go to point (5.)
+if less than 2000ms - fall asleep without changing the value in memory
+
+(Actions when exiting sleep)
+read the sleep byte from memory 
+sleep=1 – go to point (8.) 
+sleep=2 – go to point (12.)

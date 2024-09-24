@@ -1,0 +1,38 @@
+1. Turn on the power
+2. assign variables
+PWM=40%
+chast=2000Hz
+chustv=1000ms
+t1=50ms
+t2=100ms
+t3=150ms
+t4=300ms
+t5=500ms
+t6=1000ms
+t7=2000ms
+3. assign input/output ports
+PA3 - PWM output (initial state 0)
+PA4 - Output -1 – (initial state 0)
+PA5- input - 1 (spring vibration sensor)
+PA6 - input -1 (ball vibration sensor)
+4. read PA6 for 1,
+if PA6 shows “1” for more than 2000ms, then go to step 5
+if not, continue reading
+5. PA4=1 during t5, PA3=“chast” during t5 - one after another (cycle 3 times)
+6. sleep
+7. wait for PA5 to wake up
+8. read PA5 during t6
+if PA5 > t6 go to point (10.)
+if PA5 < t6 go to point (9.)
+9. wake up
+10. after waking up PA4=1 during t1, PA3= «chast» during t1 one after another (cycle 1 time) – go to point (6.)
+11. (PA4=1, read PA5 and PA6 during t3), PA3=1 - «chast» read PA6 during t3, - one after another (cycle 1 time)
+If PA5 =1 go to point (11.)
+If PA5 =0 go to point (12.)
+If PA6 =1 go to point (4.)
+
+
+12. (PA4=1, read PA5 during t4, PA4=0, read PA5 during t7) - one after another
+If PA5 =1 go to point (10.)
+(loop 10 times)
+13.go to point (6.)
