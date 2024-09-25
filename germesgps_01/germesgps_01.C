@@ -1,6 +1,9 @@
 ﻿
 #include "extern.h"
 
+//				P? VDD PA0 PA3 PA4 PA5 PA6 PA7 GND mask1 mask2 shift
+.writer package 6, 5,  0,  6,  1,  4,  3,  0,  2,  0x00FF, 0x00FF, 0
+
 // Delay
 #define _delay_ms(x) .delay x*System_Clock/1000
 #define _delay_us(x) .delay x*System_Clock/1000000
@@ -279,4 +282,3 @@ exit_sleep:
         else goto step7_sleep;
     }
 }
-
