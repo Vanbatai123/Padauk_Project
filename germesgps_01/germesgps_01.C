@@ -30,6 +30,8 @@ t7=2000ms
 #define t6              1000
 #define t7              2000
 
+#define ts              3000 // ts = 30ms but polling each 0.01ms => ts = 3000
+
 #define MAX_STEP5       3
 
 /*
@@ -104,8 +106,8 @@ void FPPA0 (void)
     */
 // step3:
     $ PIN_A4        Out, Low
-    $ PIN_SPRING_A6 In, Pull
-    $ PIN_BALL_A5   In, Pull
+    $ PIN_SPRING_A6 In
+    $ PIN_BALL_A5   In
 
     word cnt_timer = 0;
     word cnt_step = 0;
@@ -154,8 +156,19 @@ step7_sleep:
         stopsys;
         goto exit_sleep;// goto exit sleep after wake up to check sleep value
 step8:
-        // 8. Wakeup, read PA6 == 1 more than t6(ms)?
-        if (PIN_SPRING_A6 == 1)
+        // 8. Wakeup,
+        // polling to check PA6 in ts
+        cnt_timer = 0;
+        while (cnt_timer < ts)
+        {
+            // if PA6 == 1 (have PA6 signal, jump out and check PA6 after t6
+            if (PIN_SPRING_A6 == 1)
+                break;
+
+            _delay_us(10);
+            cnt_timer++;
+        }
+        if (cnt_timer != ts) // in ts time, has PA6==1, delay t6 and check A6 after that
         {
             _delay_ms(t6);
             if (PIN_SPRING_A6 == 1)
@@ -265,7 +278,19 @@ step11:
 
 step12:
         // 12. Wakeup, read PA5 == 1 more than 2000(ms)?
-        if (PIN_BALL_A5 == 1)
+        // polling to check PA5 in ts
+        cnt_timer = 0;
+        while (cnt_timer < ts)
+        {
+            // if PA5 == 1 (have PA5 signal), jump out and check PA5 after 2ms
+            if (PIN_BALL_A5 == 1)
+                break;
+
+            _delay_us(10);
+            cnt_timer++;
+        }
+
+        if (cnt_timer != ts) // in ts time, has PA5==1, delay 2000ms and check A5 after that
         {
             _delay_ms(2000);
             if (PIN_BALL_A5 == 1)
